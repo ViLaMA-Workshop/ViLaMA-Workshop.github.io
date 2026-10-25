@@ -432,25 +432,12 @@ JS adds a compact mobile menu. */
   margin:0;
   white-space:nowrap
 }
-.abstract{
-  font:400 22px/1.65 var(--serif);
-  letter-spacing:-.012em;
-  color:var(--ink)
+/* The overview passages use matching, always-visible subtitles. */
+.overview-block+.overview-block{
+  margin-top:36px
 }
-.motivation{
-  margin-top:32px
-}
-.motivation summary{
-  font-family:var(--sans);
-  font-size:13px;
-  font-weight:600
-}
-.motivation p{
-  margin-top:22px
-}
-.inline-detail{
-  border-top:1px solid var(--line);
-  padding-top:17px
+.overview-subtitle{
+  margin-bottom:16px
 }
 summary{
   cursor:pointer;
@@ -989,9 +976,7 @@ summary:hover{
   .section-body{
     margin-left:165px
   }
-  .abstract{
-    font-size:21px
-  }
+
   .submission-layout{
     grid-template-columns:1fr
   }
@@ -1191,16 +1176,11 @@ summary:hover{
     padding-bottom:19px;
     margin-bottom:21px
   }
-  .abstract{
-    font-size:20px;
-    line-height:1.7
-  }
+
   .reading{
     font-size:14px
   }
-  .motivation summary{
-    font-size:12px
-  }
+
 
   .date-grid{
     grid-template-columns:1fr;
@@ -1497,9 +1477,7 @@ summary:hover{
     background:white;
     font-size:11px
   }
-  .abstract{
-    font-size:16px
-  }
+
   .section-head,.person-photo,h3{
     break-after:avoid
   }

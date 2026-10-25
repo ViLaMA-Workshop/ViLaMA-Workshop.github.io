@@ -89,6 +89,7 @@ class Page(HTMLParser):
         self.markup_errors = []
         self.captured_elements = []
         self.forbidden_number_elements = []
+        self.details_elements = []
 
     def handle_starttag(self, tag, attrs):
         attrs_list = attrs
@@ -113,17 +114,23 @@ class Page(HTMLParser):
         if "data-source-id" in attrs:
             source = {"id": attrs["data-source-id"], "tag": tag,
                       "line": self.getpos()[0], "chunks": [],
+                      "classes": sorted(set(attrs.get("class", "").split())),
                       "ancestor_tags": [frame["tag"] for frame in self.stack],
                       "hidden_by_markup": hidden}
             self.source_roots.append(source)
             self.source_active.append(source)
         classes = set(attrs.get("class", "").split())
         capture = None
-        if tag == "summary" or "acronym-highlight" in classes:
+        if (tag == "summary" or "acronym-highlight" in classes or
+                "overview-subtitle" in classes or tag == "p" and "reading" in classes):
             capture = {"tag": tag, "classes": sorted(classes),
                        "line": self.getpos()[0], "chunks": [],
+                       "hidden_by_markup": hidden,
+                       "ancestor_tags": [frame["tag"] for frame in self.stack],
                        "ancestor_source_ids": [root["id"] for root in self.source_active]}
             self.captured_elements.append(capture)
+        if tag == "details":
+            self.details_elements.append({"line": self.getpos()[0], "classes": sorted(classes)})
         if classes & {"date-index", "section-number"}:
             self.forbidden_number_elements.append({"tag": tag, "classes": sorted(classes),
                                                    "line": self.getpos()[0]})
@@ -276,6 +283,45 @@ def verify(path, expected, original, total_body):
     highlight_texts = [entry["text"] for entry in title_highlights]
     correct_highlights = highlight_texts == HIGHLIGHT_TEXTS and all(
         entry["tag"] == "span" for entry in title_highlights)
+    overview_roots = {pid: [root for root in roots if root["id"] == pid]
+                      for pid in ("p016", "p018", "p020")}
+    abstract_subtitles = [entry for entry in captures if entry["tag"] == "h3" and
+                          "overview-subtitle" in entry["classes"] and
+                          "p016" in entry["ancestor_source_ids"]]
+    abstract_readings = [entry for entry in captures if entry["tag"] == "p" and
+                         "reading" in entry["classes"] and
+                         "p016" in entry["ancestor_source_ids"]]
+    overview_visibility = {
+        pid: len(found) == 1 and "details" not in found[0]["ancestor_tags"] and
+        not found[0]["hidden_by_markup"] for pid, found in overview_roots.items()
+    }
+    abstract_structure = (
+        len(overview_roots["p016"]) == 1 and overview_roots["p016"][0]["tag"] == "div" and
+        "overview-block" in overview_roots["p016"][0]["classes"] and
+        len(abstract_subtitles) == 1 and abstract_subtitles[0]["text"] == "Abstract:" and
+        not abstract_subtitles[0]["hidden_by_markup"] and
+        len(abstract_readings) == 1 and
+        abstract_readings[0]["text"] == expected["p016"][len("Abstract:"):] and
+        not abstract_readings[0]["hidden_by_markup"]
+    )
+    motivation_structure = (
+        len(overview_roots["p018"]) == 1 and overview_roots["p018"][0]["tag"] == "h3" and
+        "overview-subtitle" in overview_roots["p018"][0]["classes"] and
+        len(overview_roots["p020"]) == 1 and overview_roots["p020"][0]["tag"] == "p" and
+        "reading" in overview_roots["p020"][0]["classes"]
+    )
+    committee_only_expander = (
+        len(page.details_elements) == 1 and "committee" in page.details_elements[0]["classes"]
+    )
+    overview_checks = {
+        "abstract_has_exact_h3_subtitle_and_reading_text": abstract_structure,
+        "abstract_subtitles": abstract_subtitles,
+        "abstract_readings": abstract_readings,
+        "motivation_has_h3_subtitle_and_reading_paragraph": motivation_structure,
+        "outside_details_and_visible_in_markup": overview_visibility,
+        "committee_is_only_remaining_expander": committee_only_expander,
+        "details_elements": page.details_elements,
+    }
     normalized_page_text = " ".join("".join(page.all_text).split())
     omitted_content_checks = []
     for pid in sorted(OMITTED_IDS):
@@ -290,6 +336,9 @@ def verify(path, expected, original, total_body):
         biography_summaries, page.forbidden_number_elements)) and correct_highlights
     presentation_checks_passed = presentation_checks_passed and all(
         check["absent_from_document_text"] for check in omitted_content_checks)
+    presentation_checks_passed = presentation_checks_passed and abstract_structure and motivation_structure
+    presentation_checks_passed = presentation_checks_passed and all(overview_visibility.values())
+    presentation_checks_passed = presentation_checks_passed and committee_only_expander
     passed = not any((missing, unexpected, duplicates, mismatches, local_failures,
                       anchor_failures, duplicate_html_ids, page.markup_errors, visible_todos))
     passed = passed and len(roots) == len(expected) == 95 and presentation_checks_passed
@@ -306,6 +355,7 @@ def verify(path, expected, original, total_body):
         "duplicate_source_ids": duplicates, "text_mismatches": mismatches,
         "contact_checks": contacts,
         "biography_checks": biography_checks,
+        "overview_checks": overview_checks,
         "read_biography_summaries": biography_summaries,
         "forbidden_section_or_date_number_elements": page.forbidden_number_elements,
         "title_highlights": title_highlights,
@@ -347,11 +397,13 @@ def main():
             "unchanged_source_archive": "source-copy.json retains the full original extraction",
             "remaining_copy": "Every other character, including contact details and title textContent, must match the original DOCX",
             "biographies": "All three biographies must be present outside details and without hidden markup",
+            "overview": "p016 contains an h3.overview-subtitle exactly Abstract: and a p.reading retaining the original remainder including its leading space; p018 is h3.overview-subtitle and p020 is p.reading; all remain outside details and hidden markup",
+            "expanders": "Only the tentative committee details expander remains",
             "title_highlights": "Four acronym-highlight spans inside p003 with exact texts Vi, La, M, A",
         },
         "passed": all(result["passed"] for result in results),
         "files": results,
-        "scope": "Authorized source-copy exceptions, exact retained textContent, biography visibility in markup, title highlight spans, omitted sections, markup nesting, source IDs, contact text, local src/href targets and anchors; no JavaScript execution, stylesheet visibility evaluation or visual rendering",
+        "scope": "Authorized source-copy exceptions, exact retained textContent, Abstract and Motivation subtitle structure and visibility in markup, committee-only expander, biography visibility, title highlight spans, omitted sections, markup nesting, source IDs, contact text, local src/href targets and anchors; no JavaScript execution, stylesheet visibility evaluation or visual rendering",
     }
     output = project / "qa/source-verification.json"
     output.parent.mkdir(exist_ok=True)

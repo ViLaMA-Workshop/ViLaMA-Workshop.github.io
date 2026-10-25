@@ -79,12 +79,16 @@ hero = f'''
 <div class="fact"><span>SUBMISSIONS</span><strong>OpenReview · link to follow</strong></div>
 </div></div></section>'''
 
+# Move the original Abstract label above its paragraph without changing any text.
+abstract_label, abstract_body = COPY['p016'].split(':', 1)
+abstract_content = (f'<h3 class="overview-subtitle">{esc(abstract_label)}:</h3>'
+                    f'<p class="source-text reading">{esc(abstract_body)}</p>')
 overview = f'''
 <section class="section" id="about"><div class="wrap">
 {heading('p008','THE WORKSHOP')}
 <div class="section-body measure"><div class="overview-meta" role="region" aria-label="Workshop details" tabindex="0">{source('p010')}{source('p012')}{source('p014')}</div>
-{source('p016',cls='abstract')}
-<details class="motivation inline-detail"><summary>{source('p018','span')}</summary>{source('p020',cls='reading')}</details>
+{source('p016','div',cls='overview-block',content=abstract_content)}
+<div class="overview-block">{source('p018','h3',cls='overview-subtitle')}{source('p020',cls='reading')}</div>
 </div></div></section>'''
 
 topics = f'''

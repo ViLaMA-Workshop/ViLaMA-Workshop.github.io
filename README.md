@@ -66,15 +66,19 @@ The title's full text is unchanged. Four inline `acronym-highlight` spans emphas
 `Vi`, `La`, `M` and `A` within Vision, Language, Models and Applications. Numbered
 section decorations and date indexes are absent. Organizer portraits use a
 smaller presentation, and all three complete biographies are always displayed
-without a Read biography expander. Motivation and the tentative committee retain
-native accessible expanders. The separately supplied Springer update remains
+without a Read biography expander. Abstract: and Motivation and Scope appear as
+matching subtitles with both complete texts displayed in full. Splitting the
+Abstract: label from its body preserves the original paragraph's combined text,
+including the space after the colon. Only the tentative committee retains a
+native accessible expander. The separately supplied Springer update remains
 visibly subject to approval.
 
 `tools/verify_source.py` independently reopens the original DOCX and validates both
 the root page and `dist/index.html`. It enforces exactly these six omissions and
 seven heading-prefix changes, exact text for all retained paragraphs, visible
-biography markup, the four title highlights, and removal of the omitted sections
-and numbered decorations. It also checks contacts, local asset links and internal
+biography markup, the Abstract and Motivation subtitle structure and visibility,
+the committee-only expander, the four title highlights, and removal of the omitted
+sections and numbered decorations. It also checks contacts, local asset links and internal
 anchors, and inventories TODO comments separately from visible status labels.
 The results are written to `qa/source-verification.json`. This structural check
 does not replace visual review of the rendered page.
@@ -101,11 +105,11 @@ The calendar uses an all-day date until the session time is finalized.
 
 ## Accessibility and responsiveness
 
-Semantic landmarks, one primary heading, labeled navigation, native details,
+Semantic landmarks, one primary heading, labeled navigation, a native committee expander,
 image descriptions, visible keyboard focus, a skip link, real table row headers,
 reduced-motion support and print styles are included. The menu responds to
 Escape and closes after section selection. Without JavaScript the navigation
-and all expandable content remain usable.
+and the committee expander remain usable.
 
 ## Deployment
 
