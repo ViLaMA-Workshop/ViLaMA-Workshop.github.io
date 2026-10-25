@@ -1,21 +1,81 @@
 /* ViLaMA 2026 · buildless, responsive workshop stylesheet. */
 :root{
+  color-scheme:light;
   --paper:#f6f5ef;
   --white:#fffefa;
   --ink:#173c36;
   --brand:var(--ink);
   --title-rest:#7a7468;
   --text:#354c45;
-  --muted:#66766e;
+  --muted:#5f7067;
   --line:#cdd4c5;
   --sage:#e7ecdf;
   --lime:#d7e88e;
   --rust:#9a4935;
+  --button-bg:#173c36;
+  --button-text:#fffefa;
+  --button-hover:#285348;
+  --panel-bg:#173c36;
+  --panel-text:#d9e3d8;
+  --panel-heading:#f6f5ef;
+  --panel-muted:#b8c9b9;
+  --panel-line:#688076;
+  --resource-line:#bdc9b4;
+  --pending-line:#adbba2;
+  --placeholder:#71856a;
+  --portrait-bg:#dde1d5;
+  --selection-text:#173c36;
   --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
   --sans:"Avenir Next",Avenir,"Segoe UI",Arial,sans-serif;
   --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
   --max:1248px;
   --radius:4px
+}
+/* Separate surface and type colors keep the dark dates panel dark in both modes. */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#142823;
+  --white:#1c332b;
+  --ink:#eeeade;
+  --brand:#a9cdb1;
+  --title-rest:#b9b6a6;
+  --text:#d2d8cd;
+  --muted:#a2b2a5;
+  --line:#3f584b;
+  --sage:#1d352c;
+  --rust:#e7ac91;
+  --button-bg:#acd0b6;
+  --button-text:#142823;
+  --button-hover:#c0ddc4;
+  --panel-bg:#10231d;
+  --resource-line:#49604e;
+  --pending-line:#68806b;
+  --placeholder:#a9bfa1;
+  --portrait-bg:#30473a
+}
+/* Device-based appearance also works when JavaScript is unavailable. */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#142823;
+    --white:#1c332b;
+    --ink:#eeeade;
+    --brand:#a9cdb1;
+    --title-rest:#b9b6a6;
+    --text:#d2d8cd;
+    --muted:#a2b2a5;
+    --line:#3f584b;
+    --sage:#1d352c;
+    --rust:#e7ac91;
+    --button-bg:#acd0b6;
+    --button-text:#142823;
+    --button-hover:#c0ddc4;
+    --panel-bg:#10231d;
+    --resource-line:#49604e;
+    --pending-line:#68806b;
+    --placeholder:#a9bfa1;
+    --portrait-bg:#30473a
+  }
 }
 *{
   box-sizing:border-box
@@ -33,7 +93,7 @@ body{
 }
 ::selection{
   background:var(--lime);
-  color:var(--ink)
+  color:var(--selection-text)
 }
 a{
   color:inherit;
@@ -115,6 +175,7 @@ ul,ol{
   left:10px;
   padding:10px 20px;
   background:var(--lime);
+  color:var(--selection-text);
   z-index:100;
   transform:translateY(-160%)
 }
@@ -131,8 +192,45 @@ JS adds a compact mobile menu. */
 }
 .utility .wrap{
   display:flex;
+  align-items:center;
   justify-content:space-between;
   gap:20px
+}
+.utility-actions{
+  display:flex;
+  align-items:center;
+  gap:26px
+}
+.theme-control{
+  display:inline-flex;
+  flex:none;
+  gap:2px;
+  padding:3px;
+  border:1px solid var(--line);
+  border-radius:5px;
+  letter-spacing:0
+}
+.theme-control button{
+  background:transparent;
+  color:var(--muted);
+  border:0;
+  border-radius:2px;
+  min-height:28px;
+  padding:3px 10px;
+  font:500 10px/1.4 var(--mono)
+}
+.theme-control button:hover{
+  color:var(--ink);
+  background:var(--sage)
+}
+.theme-control button[aria-pressed="true"]{
+  background:var(--button-bg);
+  color:var(--button-text)
+}
+.theme-control button:focus-visible{
+  position:relative;
+  z-index:1;
+  outline-offset:2px
 }
 .utility a{
   text-decoration:none
@@ -202,20 +300,20 @@ JS adds a compact mobile menu. */
   transform-origin:left;
   transition:transform .2s
 }
-.nav a[aria-current],.nav a:hover{
+.nav a:not(.nav-cta)[aria-current],.nav a:not(.nav-cta):hover{
   color:var(--ink)
 }
 .nav a[aria-current]::after,.nav a:hover::after{
   transform:scaleX(1)
 }
 .nav .nav-cta{
-  background:var(--ink);
-  color:var(--white);
+  background:var(--button-bg);
+  color:var(--button-text);
   border-radius:2px;
   padding:11px 17px
 }
 .nav .nav-cta:hover{
-  background:#285348
+  background:var(--button-hover)
 }
 .menu-toggle{
   display:none;
@@ -304,16 +402,16 @@ JS adds a compact mobile menu. */
   min-height:48px;
   padding:13px 20px;
   text-decoration:none;
-  background:var(--ink);
-  color:var(--white);
+  background:var(--button-bg);
+  color:var(--button-text);
   font-size:12px;
   font-weight:600;
-  border:1px solid var(--ink);
+  border:1px solid var(--button-bg);
   border-radius:2px
 }
 .button:hover{
-  background:#285348;
-  color:var(--white)
+  background:var(--button-hover);
+  color:var(--button-text)
 }
 .button svg,.text-link svg{
   width:16px;
@@ -482,15 +580,15 @@ summary:hover{
   font:400 19px/1.55 var(--serif)
 }
 .dates-section{
-  background:var(--ink);
-  color:#d9e3d8;
+  background:var(--panel-bg);
+  color:var(--panel-text);
   border:0
 }
 .dates-section h2{
-  color:var(--paper)
+  color:var(--panel-heading)
 }
 .dates-section .section-head .eyebrow{
-  color:#b8c9b9
+  color:var(--panel-muted)
 }
 .date-grid{
   display:grid;
@@ -498,7 +596,7 @@ summary:hover{
   gap:30px
 }
 .date-card{
-  border-top:1px solid #688076;
+  border-top:1px solid var(--panel-line);
   padding-top:20px
 }
 .date-card p{
@@ -518,8 +616,8 @@ summary:hover{
 }
 .calendar-link{
   margin-top:31px;
-  color:var(--paper);
-  border-color:#688076
+  color:var(--panel-heading);
+  border-color:var(--panel-line)
 }
 .calendar-link:hover{
   color:var(--lime)
@@ -532,7 +630,7 @@ summary:hover{
 }
 .dates-footer .small{
   margin-top:31px;
-  color:#b8c9b9;
+  color:var(--panel-muted);
   font-size:10px
 }
 .submission-layout{
@@ -576,13 +674,13 @@ summary:hover{
   gap:15px;
   align-items:center;
   min-height:55px;
-  border-top:1px solid #bdc9b4;
+  border-top:1px solid var(--resource-line);
   text-decoration:none;
   font-size:12px;
   line-height:1.5
 }
 .resource-link:last-of-type{
-  border-bottom:1px solid #bdc9b4
+  border-bottom:1px solid var(--resource-line)
 }
 .resource-link svg{
   width:15px;
@@ -597,7 +695,7 @@ summary:hover{
   display:flex;
   gap:8px;
   align-items:flex-start;
-  border:1px dashed #adbba2;
+  border:1px dashed var(--pending-line);
   padding:13px 14px;
   margin-top:20px;
   font-size:11px;
@@ -696,7 +794,7 @@ summary:hover{
 .speaker-placeholder .marker{
   font:400 57px/1 var(--serif);
   letter-spacing:-3px;
-  color:#71856a
+  color:var(--placeholder)
 }
 .speaker-placeholder p{
   font-size:12px
@@ -727,7 +825,7 @@ summary:hover{
   flex-direction:column
 }
 .person-photo{
-  background:#dde1d5;
+  background:var(--portrait-bg);
   width:160px;
   max-width:100%;
   aspect-ratio:4/4.4;
@@ -801,7 +899,7 @@ summary:hover{
   margin-bottom:27px
 }
 .venue-details{
-  border-top:1px solid #aebea4;
+  border-top:1px solid var(--resource-line);
   padding-top:23px
 }
 .venue-details p{
@@ -814,7 +912,7 @@ summary:hover{
   overflow-wrap:anywhere
 }
 .venue-details .pending{
-  border-color:#aab99e
+  border-color:var(--pending-line)
 }
 .footer{
   padding:32px 0 23px
@@ -1041,8 +1139,15 @@ summary:hover{
   .utility .wrap{
     gap:10px
   }
-  .utility .wrap>span:last-child{
+  .utility-date{
     display:none
+  }
+  .utility-actions{
+    gap:0
+  }
+  .theme-control button{
+    min-height:36px;
+    padding-inline:8px
   }
   .nav-shell{
     flex-wrap:wrap;
@@ -1338,6 +1443,11 @@ summary:hover{
   }
 }
 @media(max-width:380px){
+  .utility .wrap{
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:7px
+  }
   .wrap{
     width:calc(100% - 32px)
   }
@@ -1400,6 +1510,23 @@ summary:hover{
   }
 }
 @media print{
+  :root,:root[data-theme],:root:not([data-theme]){
+    color-scheme:light;
+    --paper:#f6f5ef;
+    --white:#fffefa;
+    --ink:#173c36;
+    --brand:#173c36;
+    --title-rest:#7a7468;
+    --text:#354c45;
+    --muted:#5f7067;
+    --line:#cdd4c5;
+    --sage:#e7ecdf;
+    --rust:#9a4935;
+    --resource-line:#bdc9b4;
+    --pending-line:#adbba2;
+    --placeholder:#71856a;
+    --portrait-bg:#dde1d5
+  }
   .utility,.header,.hero-art,.hero-actions,.calendar-link,.footer,.skip{
     display:none!important
   }
@@ -1438,6 +1565,9 @@ summary:hover{
   }
   .dates-section h2,.date-card time{
     color:black
+  }
+  .dates-section .section-head .eyebrow,.dates-footer .small{
+    color:#354c45
   }
 
   .submission-layout{

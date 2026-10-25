@@ -199,9 +199,9 @@ document = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#173c36"><meta name="description" content="First Workshop on Vision Language Models and Applications (ViLaMA 2026). {esc(WORKSHOP_DISPLAY)} at {esc(VENUE)}, in conjunction with ICVGIP 2026.">
 <title>ViLaMA 2026 · Vision Language Models and Applications</title>
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css"><script src="script.js" defer></script>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><script src="theme.js"></script><link rel="stylesheet" href="styles.css"><script src="script.js" defer></script>
 </head><body><a class="skip" href="#main">Skip to main content</a>
-<div class="utility"><div class="wrap"><a href="https://icvgip.in/2026/">In conjunction with ICVGIP 2026 {chr(8599)}</a><span>{esc(WORKSHOP_DISPLAY.upper())} · {esc(VENUE.upper())}</span></div></div>
+<div class="utility"><div class="wrap"><a href="https://icvgip.in/2026/">In conjunction with ICVGIP 2026 {chr(8599)}</a><div class="utility-actions"><span class="utility-date">{esc(WORKSHOP_DISPLAY.upper())} · {esc(VENUE.upper())}</span><div class="theme-control" role="group" aria-label="Page appearance" data-theme-controls hidden><button type="button" data-theme-choice="light" aria-pressed="false">Light</button><button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button><button type="button" data-theme-choice="auto" aria-pressed="true" title="Follow your device appearance">Auto</button></div></div></div></div>
 <header class="header"><div class="wrap nav-shell">{wordmark}
 <button class="menu-toggle" type="button" aria-controls="navigation" aria-expanded="false"><span>Menu</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.5"/></svg></button>
 <nav class="nav" id="navigation" aria-label="Main navigation"><a href="#about">About</a><a href="#topics">Topics</a><a href="#dates">Dates</a><a href="#program">Program</a><a href="#speakers">Speakers</a><a href="#organizers">Organizers</a><a class="nav-cta" href="#submission">Call for papers {chr(8599)}</a></nav>
@@ -238,7 +238,7 @@ END:VCALENDAR\r
 (ROOT / 'assets' / 'favicon.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="#173c36"/><path d="m8 11 9 19h6l9-19h-6l-6 14-6-14z" fill="#d7e88e"/></svg>')
 out = ROOT / 'dist'
 out.mkdir(exist_ok=True)
-for file in ['index.html','styles.css','script.js']:
+for file in ['index.html','styles.css','script.js','theme.js']:
     shutil.copy2(ROOT / file,out / file)
 shutil.copytree(ROOT / 'assets',out / 'assets',dirs_exist_ok=True)
 print(f'Built {len(USED)} retained source paragraphs with approved display changes into index.html and dist/index.html.')

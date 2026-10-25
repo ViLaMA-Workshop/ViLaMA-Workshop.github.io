@@ -1,4 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1000" viewBox="0 0 1120 1000" fill="none">
+  <!-- The embedding page's color-scheme also reaches this external SVG. -->
+  <style>
+    @media (prefers-color-scheme: dark) {
+      [stroke="#173C36"] { stroke:#A8C2AE }
+      [fill="#173C36"] { fill:#83A28E }
+      [stop-color="#173C36"] { stop-color:#A8C2AE }
+      [fill="#F6F4ED"] { fill:#203C31 }
+      [stop-color="#F6F4ED"] { stop-color:#294638 }
+      [stroke="#F6F4ED"] { stroke:#D3DFCC }
+      [fill="#E3E8D9"] { fill:#2D4A3B }
+      [stop-color="#E7EBDD"] { stop-color:#435F48 }
+      [stop-color="#C8D5BE"] { stop-color:#344F3D }
+      [stop-color="#E7EADA"] { stop-color:#1D352B }
+      [fill="#A8B9A0"] { fill:#54715A }
+      [fill="#D9E2CE"] { fill:#496550 }
+      [fill="#527665"] { fill:#324F3E }
+      [fill="#91AA8C"] { fill:#668468 }
+      [fill="#AABDA1"] { fill:#68896B }
+      [fill="#D6E68C"] { fill:#C1D588 }
+      [stroke="#D6E68C"] { stroke:#C1D588 }
+      [fill="#F0E3D9"] { fill:#665347 }
+      [fill="#AD583E"] { fill:#DCA185 }
+      [stroke="#AD583E"] { stroke:#DCA185 }
+    }
+  </style>
   <defs>
     <linearGradient id="landscape" x1="354" y1="128" x2="354" y2="418" gradientUnits="userSpaceOnUse">
       <stop stop-color="#E7EBDD"/>

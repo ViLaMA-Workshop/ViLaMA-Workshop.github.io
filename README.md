@@ -19,6 +19,8 @@ Visit `http://localhost:8000`.
 - `index.html`: complete generated page, including all 95 retained source paragraphs.
 - `styles.css`: theme tokens, layouts, breakpoints, focus and print styles.
 - `script.js`: mobile navigation, current-section tracking, print enhancements.
+- `theme.js`: early appearance selection, saved preference, device appearance
+  changes and accessible Light / Dark / Auto controls.
 - `assets/`: original vector artwork, the three portraits extracted from the
   proposal, favicon and a downloadable calendar event.
 - `source-copy.json`: unchanged archive of all 101 nonempty paragraphs extracted
@@ -110,6 +112,17 @@ image descriptions, visible keyboard focus, a skip link, real table row headers,
 reduced-motion support and print styles are included. The menu responds to
 Escape and closes after section selection. Without JavaScript the navigation
 and the committee expander remain usable.
+
+Light / Dark / Auto controls appear in the top utility bar. Auto is the default
+and follows the device's appearance, including device-scheduled evening changes.
+An explicit selection is remembered in local storage (`vilama-theme`) and synced
+between tabs. The small theme script runs before styles to avoid an initial
+appearance flash. If storage is unavailable, the choice still works for the
+current visit. With JavaScript disabled, CSS follows the device appearance and
+the inactive controls stay hidden. Printing always uses light colors. The SVG
+illustration has a matching dark palette that follows the page's color scheme.
+
+Run the dependency-free theme behavior checks with `node tools/test_theme.cjs`.
 
 ## Deployment
 
