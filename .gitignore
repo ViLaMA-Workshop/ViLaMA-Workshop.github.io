@@ -1,0 +1,6 @@
+.DS_Store
+.site-workflow*
+__pycache__/
+qa/
+*.tar.gz
+*.zip
