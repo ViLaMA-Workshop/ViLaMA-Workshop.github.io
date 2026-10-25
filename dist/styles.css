@@ -56,7 +56,7 @@ img,svg{
   display:block;
   max-width:100%
 }
-a:focus-visible,button:focus-visible,summary:focus-visible{
+a:focus-visible,button:focus-visible,summary:focus-visible,.overview-meta:focus-visible{
   outline:3px solid var(--rust);
   outline-offset:5px
 }
@@ -98,6 +98,9 @@ ul,ol{
   font:500 11px/1.6 var(--mono);
   letter-spacing:.13em;
   text-transform:uppercase
+}
+.workshop-name{
+  text-transform:none!important
 }
 .small{
   font-size:13px;
@@ -410,14 +413,24 @@ JS adds a compact mobile menu. */
 }
 .overview-meta{
   display:flex;
-  flex-wrap:wrap;
-  gap:10px 25px;
+  flex-wrap:nowrap;
+  align-items:center;
+  gap:25px;
+  max-width:100%;
+  overflow-x:auto;
+  scrollbar-width:thin;
+  scrollbar-color:var(--line) transparent;
   font-size:11px;
   line-height:1.7;
   padding-bottom:24px;
   margin-bottom:24px;
   border-bottom:1px solid var(--line);
   color:var(--muted)
+}
+.overview-meta .source-text{
+  flex:0 0 auto;
+  margin:0;
+  white-space:nowrap
 }
 .abstract{
   font:400 22px/1.65 var(--serif);
@@ -462,45 +475,24 @@ details[open]>summary::after{
 summary:hover{
   color:var(--rust)
 }
-.topic-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  border-top:1px solid var(--line);
-  border-left:1px solid var(--line);
-  counter-reset:topic
+/* A flowing research list fits the editorial typography without boxed cards. */
+.topic-list{
+  columns:2;
+  column-gap:56px;
+  padding-left:18px;
+  list-style:disc
 }
-.topic-grid li{
-  border-right:1px solid var(--line);
-  border-bottom:1px solid var(--line);
-  padding:24px 24px 28px;
-  min-height:127px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  gap:21px;
-  position:relative;
-  transition:background .2s;
-  counter-increment:topic
+.topic-list li{
+  break-inside:avoid;
+  padding:0 0 18px 5px
 }
-.topic-grid li::before{
-  content:counter(topic,decimal-leading-zero);
-  font:10px/1 var(--mono);
-  color:var(--muted)
+.topic-list li::marker{
+  color:var(--rust);
+  font-size:11px
 }
-.topic-grid li:hover{
-  background:var(--sage)
-}
-.topic-grid p{
-  font:500 17px/1.4 var(--serif);
-  color:var(--ink)
-}
-.topics-index{
-  display:flex;
-  justify-content:space-between;
-  gap:20px;
-  margin-top:16px;
-  color:var(--muted);
-  font:10px/1.6 var(--mono)
+.topic-list p{
+  color:var(--ink);
+  font:400 19px/1.55 var(--serif)
 }
 .dates-section{
   background:var(--ink);
@@ -932,9 +924,7 @@ summary:hover{
   .date-grid{
     gap:22px
   }
-  .topic-grid p{
-    font-size:16px
-  }
+
   .speaker-placeholder{
     padding:25px
   }
@@ -1029,10 +1019,7 @@ summary:hover{
   .date-card:last-child time{
     font-size:23px
   }
-  .topic-grid li{
-    padding:20px 18px;
-    min-height:130px
-  }
+
   .person-photo{
     aspect-ratio:4/4.4
   }
@@ -1214,21 +1201,7 @@ summary:hover{
   .motivation summary{
     font-size:12px
   }
-  .topic-grid{
-    grid-template-columns:1fr 1fr
-  }
-  .topic-grid li{
-    padding:17px 16px 20px;
-    min-height:126px;
-    gap:18px
-  }
-  .topic-grid p{
-    font-size:17px;
-    line-height:1.4
-  }
-  .topics-index{
-    font-size:8px
-  }
+
   .date-grid{
     grid-template-columns:1fr;
     gap:30px
@@ -1401,9 +1374,7 @@ summary:hover{
   .hero-actions .text-link{
     font-size:11px
   }
-  .topic-grid p{
-    font-size:15px
-  }
+
   .person{
     grid-template-columns:76px 1fr;
     gap:0 16px
@@ -1488,13 +1459,7 @@ summary:hover{
   .dates-section h2,.date-card time{
     color:black
   }
-  .topic-grid{
-    grid-template-columns:repeat(3,1fr)
-  }
-  .topic-grid li{
-    min-height:auto;
-    padding:12px
-  }
+
   .submission-layout{
     display:block
   }
@@ -1538,7 +1503,14 @@ summary:hover{
   .section-head,.person-photo,h3{
     break-after:avoid
   }
-  .schedule tr,.topic-grid li{
+  .schedule tr,.topic-list li{
     break-inside:avoid
   }
+}
+
+@media(max-width:760px){
+  .overview-meta{font-size:11px;gap:22px}
+  .topic-list{columns:1;padding-left:17px}
+  .topic-list li{padding-bottom:16px}
+  .topic-list p{font-size:18px}
 }

@@ -43,7 +43,9 @@ def update(key, content=None, cls='', tag='p'):
 
 
 def heading(pid, eyebrow, tag='h2'):
-    return f'<div class="section-head"><p class="eyebrow">{eyebrow}</p>{source(pid,tag)}</div>'
+    # Keep the official name mixed case even when surrounding labels are uppercase.
+    eyebrow_html = esc(eyebrow).replace('ViLaMA', '<span class="workshop-name">ViLaMA</span>')
+    return f'<div class="section-head"><p class="eyebrow">{eyebrow_html}</p>{source(pid,tag)}</div>'
 
 
 arrow = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5"/></svg>'
@@ -80,15 +82,14 @@ hero = f'''
 overview = f'''
 <section class="section" id="about"><div class="wrap">
 {heading('p008','THE WORKSHOP')}
-<div class="section-body measure"><div class="overview-meta">{source('p010')}{source('p012')}{source('p014')}</div>
+<div class="section-body measure"><div class="overview-meta" role="region" aria-label="Workshop details" tabindex="0">{source('p010')}{source('p012')}{source('p014')}</div>
 {source('p016',cls='abstract')}
 <details class="motivation inline-detail"><summary>{source('p018','span')}</summary>{source('p020',cls='reading')}</details>
 </div></div></section>'''
 
 topics = f'''
 <section class="section" id="topics"><div class="wrap">{heading('p021','RESEARCH THEMES')}
-<ul class="topic-grid" aria-label="Topics of Interest">{''.join('<li>'+source(f'p{i:03}')+'</li>' for i in range(23,38))}</ul>
-<div class="topics-index"><span>ViLaMA 2026</span><span>VISION · LANGUAGE · APPLICATIONS</span></div>
+<div class="section-body"><ul class="topic-list" aria-label="Topics of Interest">{''.join('<li>'+source(f'p{i:03}')+'</li>' for i in range(23,38))}</ul></div>
 </div></section>'''
 
 def date_update(key, prefix, iso):
