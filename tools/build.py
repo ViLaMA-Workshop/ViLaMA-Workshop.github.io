@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Build a dependency-free static website without altering supplied copy.
 
-The DOCX extraction remains the source of truth. Every nonempty paragraph is
-rendered once with a stable data-source-id, enabling an independent exact audit.
+The DOCX extraction remains the source of truth. Approved display changes are
+limited to omitted sections and heading numbers; other retained text is exact.
 Run: python3 tools/build.py
 """
 from pathlib import Path
 import html
 import json
 import shutil
+import re
 from datetime import date, datetime, timedelta, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +21,9 @@ WORKSHOP_DISPLAY = f'{WORKSHOP_DATE.day} {WORKSHOP_DATE:%B %Y}'
 VENUE = UPDATES['venue_short']
 CALENDAR_VENUE = UPDATES['venue_name'].replace(',', '\\,')
 COPY = {p['id']: p['text'] for p in DATA['paragraphs']}
+# These changes were explicitly requested after the original complete page.
+OMITTED_IDS = {'p133', 'p135', 'p138', 'p140', 'p143', 'p145'}
+UNNUMBERED_HEADINGS = {'p008', 'p018', 'p021', 'p038', 'p071', 'p095', 'p109'}
 USED = []
 esc = lambda s: html.escape(s, quote=True)
 
@@ -28,7 +32,8 @@ def source(pid, tag='p', cls='', content=None, attrs=''):
     if pid in USED:
         raise ValueError('Duplicate source paragraph: ' + pid)
     USED.append(pid)
-    value = esc(COPY[pid]) if content is None else content
+    display_text = re.sub(r'^\d+\.\s+', '', COPY[pid]) if pid in UNNUMBERED_HEADINGS else COPY[pid]
+    value = esc(display_text) if content is None else content
     return f'<{tag} data-source-id="{pid}" class="source-text {cls}" {attrs}>{value}</{tag}>'
 
 
@@ -38,19 +43,20 @@ def update(key, content=None, cls='', tag='p'):
 
 
 def heading(pid, eyebrow, tag='h2'):
-    # Source numbering and headings are retained, with only presentation changed.
-    value = esc(COPY[pid])
-    if '. ' in COPY[pid]:
-        number, title = COPY[pid].split('. ', 1)
-        value = f'<span class="section-number">{esc(number)}. </span>{esc(title)}'
-    return f'<div class="section-head"><p class="eyebrow">{eyebrow}</p>{source(pid,tag,content=value)}</div>'
+    return f'<div class="section-head"><p class="eyebrow">{eyebrow}</p>{source(pid,tag)}</div>'
 
 
 arrow = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5"/></svg>'
 external = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.5"/></svg>'
 brand = '<svg class="brand-symbol" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M4 7h18v18H4z" stroke="currentColor" stroke-width="1.4"/><path d="m7 21 5-6 4 4 3-3" stroke="currentColor" stroke-width="1.4"/><circle cx="17" cy="12" r="2" fill="#9a4935"/><path d="M27 14h9v19H18v-5" stroke="currentColor" stroke-width="1.4"/><path d="M24 22h8m-8 4h8m-8 4h5" stroke="currentColor" stroke-width="1.4"/></svg>'
 wordmark = f'<a class="brand" href="#top" aria-label="ViLaMA 2026 home">{brand}<span class="brand-word">ViLaMA <small>ICVGIP 2026</small></span></a>'
-hero_title = esc(COPY['p003']).replace('First Workshop on ', '<span class="intro">First Workshop on </span>').replace('Applications', '<span class="accent">Applications</span>').replace(' (ViLaMA 2026)', '<span class="edition"> (ViLaMA 2026)</span>')
+hero_title = (esc(COPY['p003'])
+              .replace('First Workshop on ', '<span class="intro">First Workshop on </span>')
+              .replace('Vision', '<span class="acronym-highlight">Vi</span>sion')
+              .replace('Language', '<span class="acronym-highlight">La</span>nguage')
+              .replace('Models', '<span class="acronym-highlight">M</span>odels')
+              .replace('Applications', '<span class="accent"><span class="acronym-highlight">A</span>pplications</span>')
+              .replace(' (ViLaMA 2026)', '<span class="edition"> (ViLaMA 2026)</span>'))
 
 hero = f'''
 <section class="hero" id="top" aria-labelledby="workshop-title"><div class="wrap">
@@ -99,9 +105,9 @@ dates = f'''
 <div class="section-head"><p class="eyebrow">PLAN YOUR SUBMISSION</p><h2>Important Dates</h2></div>
 <div class="section-body"><div class="date-grid">
 <!-- TODO: Add the submission deadline time and timezone once the organizers confirm them. -->
-<article class="date-card"><span class="date-index">01 / {WORKSHOP_DATE.year}</span>{date_update('deadline','Paper Submission Deadline: ',UPDATES['submission_date'])}</article>
-<article class="date-card"><span class="date-index">02 / {WORKSHOP_DATE.year}</span>{date_update('notification','Results will be announced within ',UPDATES['notification_date'])}</article>
-<article class="date-card"><span class="date-index">03 / {WORKSHOP_DATE.year}</span>{date_update('workshop','Workshop Date: ',UPDATES['workshop_date'])}</article>
+<article class="date-card">{date_update('deadline','Paper Submission Deadline: ',UPDATES['submission_date'])}</article>
+<article class="date-card">{date_update('notification','Results will be announced within ',UPDATES['notification_date'])}</article>
+<article class="date-card">{date_update('workshop','Workshop Date: ',UPDATES['workshop_date'])}</article>
 </div><div class="dates-footer"><a class="text-link calendar-link" href="assets/vilama-2026.ics" download>Add workshop to calendar {external}</a><p class="small">All dates are in {WORKSHOP_DATE.year}.</p></div>
 </div></div></section>'''
 
@@ -166,20 +172,14 @@ for n, name, metas, contacts, bio, photo in [
     (3,62,[63,64,65],[66,67],68,'source-image3.jpg')]:
     people.append(f'''<article class="person">
 <!-- TODO: Replace this portrait only if an updated photo is supplied by the organizer. Current photo is extracted from the Word document. -->
-<div class="person-photo"><img src="assets/{photo}" alt="{esc(COPY[f'p{name:03}'].strip())}" loading="lazy" width="480" height="530"><span class="person-number" aria-hidden="true">0{n}</span></div>
+<div class="person-photo"><img src="assets/{photo}" alt="{esc(COPY[f'p{name:03}'].strip())}" loading="lazy" width="160" height="176"></div>
 {source(f'p{name:03}','h3')}<div class="person-meta">{''.join(source(f'p{i:03}') for i in metas)}</div>
 <div class="person-contact">{''.join(link_contact(f'p{i:03}') for i in contacts)}</div>
-<details><summary>Read biography</summary>{source(f'p{bio:03}',cls='bio')}</details>
+{source(f'p{bio:03}',cls='bio')}
 </article>''')
 organizers = f'''
 <section class="section people-section" id="organizers"><div class="wrap">{heading('p038','THE PEOPLE BEHIND ViLaMA')}
 <div class="section-body"><div class="people-grid">{''.join(people)}</div>{source('p070',cls='primary-contact')}</div>
-</div></section>'''
-
-audience = f'''
-<section class="section" id="community"><div class="wrap">{heading('p133','OUR COMMUNITY')}
-<div class="section-body audience-grid"><div>{source('p135')}</div><div class="secondary-panel">{source('p138','h3')}{source('p140')}
-<div class="previous">{source('p143','h3')}{source('p145')}</div></div></div>
 </div></section>'''
 
 venue = f'''
@@ -201,14 +201,15 @@ document = f'''<!doctype html>
 <button class="menu-toggle" type="button" aria-controls="navigation" aria-expanded="false"><span>Menu</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.5"/></svg></button>
 <nav class="nav" id="navigation" aria-label="Main navigation"><a href="#about">About</a><a href="#topics">Topics</a><a href="#dates">Dates</a><a href="#program">Program</a><a href="#speakers">Speakers</a><a href="#organizers">Organizers</a><a class="nav-cta" href="#submission">Call for papers {chr(8599)}</a></nav>
 </div></header>
-<main id="main" tabindex="-1">{hero}{overview}{topics}{dates}{submission}{program}{speakers}{organizers}{audience}{venue}</main>
+<main id="main" tabindex="-1">{hero}{overview}{topics}{dates}{submission}{program}{speakers}{organizers}{venue}</main>
 <footer class="footer"><div class="wrap"><div class="footer-top">{wordmark}<div class="footer-links"><a href="#submission">Author information</a><a href="mailto:pguha@iitg.ac.in">Contact</a><a href="https://icvgip.in/2026/">ICVGIP 2026</a></div><a class="to-top" href="#top">Back to top ↑</a></div>
 <div class="footer-bottom"><span>ViLaMA 2026 · First Workshop on Vision Language Models and Applications</span><span>KOLKATA, INDIA</span></div></div></footer>
 </body></html>'''
 
-missing = set(COPY) - set(USED)
+missing = set(COPY) - set(USED) - OMITTED_IDS
 assert not missing, 'Source copy omitted: ' + ', '.join(sorted(missing))
-assert len(USED) == len(COPY)
+assert not (set(USED) & OMITTED_IDS), 'User-removed sections must not render.'
+assert len(USED) == len(COPY) - len(OMITTED_IDS)
 (ROOT / 'index.html').write_text(document, encoding='utf-8')
 
 # TODO: The workshop is an all-day calendar entry until the final session time is confirmed.
@@ -235,4 +236,4 @@ out.mkdir(exist_ok=True)
 for file in ['index.html','styles.css','script.js']:
     shutil.copy2(ROOT / file,out / file)
 shutil.copytree(ROOT / 'assets',out / 'assets',dirs_exist_ok=True)
-print(f'Built {len(USED)} exact source paragraphs into index.html and dist/index.html.')
+print(f'Built {len(USED)} retained source paragraphs with approved display changes into index.html and dist/index.html.')

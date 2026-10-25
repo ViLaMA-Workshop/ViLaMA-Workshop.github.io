@@ -48,7 +48,7 @@
     document.querySelectorAll('main section[id]').forEach(section => observer.observe(section));
   }
 
-  // When printing, expose every biography and all source proposal details.
+  // Expand the remaining source proposal details when printing.
   let printDetails = [];
   window.addEventListener('beforeprint', () => {
     printDetails = Array.from(document.querySelectorAll('details')).map(node => [node, node.open]);

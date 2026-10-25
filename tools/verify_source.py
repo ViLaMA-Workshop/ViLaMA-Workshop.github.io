@@ -20,6 +20,10 @@ W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
         "link", "meta", "param", "source", "track", "wbr"}
 NONVISIBLE = {"head", "script", "style", "template"}
+OMITTED_IDS = {"p133", "p135", "p138", "p140", "p143", "p145"}
+UNNUMBERED_HEADING_IDS = {"p008", "p018", "p021", "p038", "p071", "p095", "p109"}
+BIOGRAPHY_IDS = ("p047", "p058", "p068")
+HIGHLIGHT_TEXTS = ["Vi", "La", "M", "A"]
 MARKERS = re.compile(
     r"\b(?:TODO|TBD|TBA|placeholder)\b|\bcoming soon\b|\bto be announced\b|"
     r"\bto be confirmed\b|\blink to (?:follow|be added)\b|"
@@ -81,7 +85,10 @@ class Page(HTMLParser):
         self.links = []
         self.comments = []
         self.visible = []
+        self.all_text = []
         self.markup_errors = []
+        self.captured_elements = []
+        self.forbidden_number_elements = []
 
     def handle_starttag(self, tag, attrs):
         attrs_list = attrs
@@ -105,10 +112,22 @@ class Page(HTMLParser):
         source = None
         if "data-source-id" in attrs:
             source = {"id": attrs["data-source-id"], "tag": tag,
-                      "line": self.getpos()[0], "chunks": []}
+                      "line": self.getpos()[0], "chunks": [],
+                      "ancestor_tags": [frame["tag"] for frame in self.stack],
+                      "hidden_by_markup": hidden}
             self.source_roots.append(source)
             self.source_active.append(source)
-        frame = {"tag": tag, "source": source, "hidden": hidden}
+        classes = set(attrs.get("class", "").split())
+        capture = None
+        if tag == "summary" or "acronym-highlight" in classes:
+            capture = {"tag": tag, "classes": sorted(classes),
+                       "line": self.getpos()[0], "chunks": [],
+                       "ancestor_source_ids": [root["id"] for root in self.source_active]}
+            self.captured_elements.append(capture)
+        if classes & {"date-index", "section-number"}:
+            self.forbidden_number_elements.append({"tag": tag, "classes": sorted(classes),
+                                                   "line": self.getpos()[0]})
+        frame = {"tag": tag, "source": source, "hidden": hidden, "capture": capture}
         if tag in VOID:
             if source is not None:
                 self.source_active.remove(source)
@@ -140,8 +159,12 @@ class Page(HTMLParser):
                 self.source_active.remove(frame["source"])
 
     def handle_data(self, data):
+        self.all_text.append(data)
         for source in self.source_active:
             source["chunks"].append(data)
+        for frame in self.stack:
+            if frame["capture"] is not None:
+                frame["capture"]["chunks"].append(data)
         if not self.stack or not self.stack[-1]["hidden"]:
             self.visible.append({"line": self.getpos()[0], "text": data})
 
@@ -172,7 +195,7 @@ def difference(expected, actual):
             "expected_text": expected, "actual_text": actual}
 
 
-def verify(path, expected, total_body):
+def verify(path, expected, original, total_body):
     if not path.exists():
         return {"path": str(path), "status": "missing_build_output", "passed": False}
     page = parse_page(path)
@@ -233,9 +256,43 @@ def verify(path, expected, total_body):
             contacts.append({"id": pid, "source_text": text, "emails": emails,
                              "contains_telephone": is_phone,
                              "retained_exactly_once": len(matching) == 1 and matching[0]["text"] == text})
+    biography_checks = []
+    for pid in BIOGRAPHY_IDS:
+        matching = [root for root in roots if root["id"] == pid]
+        biography_checks.append({
+            "id": pid,
+            "present_once": len(matching) == 1,
+            "has_details_ancestor": any("details" in root["ancestor_tags"] for root in matching),
+            "hidden_by_markup": any(root["hidden_by_markup"] for root in matching),
+            "always_visible_in_markup": len(matching) == 1 and
+            "details" not in matching[0]["ancestor_tags"] and not matching[0]["hidden_by_markup"],
+        })
+    captures = [{key: value for key, value in entry.items() if key != "chunks"} |
+                {"text": "".join(entry["chunks"])} for entry in page.captured_elements]
+    biography_summaries = [entry for entry in captures if entry["tag"] == "summary" and
+                           re.search(r"\bread\s+biography\b", entry["text"], re.I)]
+    title_highlights = [entry for entry in captures if "acronym-highlight" in entry["classes"] and
+                        "p003" in entry["ancestor_source_ids"]]
+    highlight_texts = [entry["text"] for entry in title_highlights]
+    correct_highlights = highlight_texts == HIGHLIGHT_TEXTS and all(
+        entry["tag"] == "span" for entry in title_highlights)
+    normalized_page_text = " ".join("".join(page.all_text).split())
+    omitted_content_checks = []
+    for pid in sorted(OMITTED_IDS):
+        original_text = " ".join(original[pid].split())
+        heading_text = re.sub(r"^\d+\.\s+", "", original_text) if pid in (
+            "p133", "p138", "p143") else original_text
+        found = heading_text in normalized_page_text
+        omitted_content_checks.append({"id": pid, "source_text": original[pid],
+                                       "absent_from_document_text": not found})
+    presentation_checks_passed = all(check["always_visible_in_markup"] for check in biography_checks)
+    presentation_checks_passed = presentation_checks_passed and not any((
+        biography_summaries, page.forbidden_number_elements)) and correct_highlights
+    presentation_checks_passed = presentation_checks_passed and all(
+        check["absent_from_document_text"] for check in omitted_content_checks)
     passed = not any((missing, unexpected, duplicates, mismatches, local_failures,
                       anchor_failures, duplicate_html_ids, page.markup_errors, visible_todos))
-    passed = passed and len(roots) == len(expected) == 101
+    passed = passed and len(roots) == len(expected) == 95 and presentation_checks_passed
     passed = passed and all(contact["retained_exactly_once"] for contact in contacts)
     return {
         "path": str(path), "passed": passed,
@@ -248,6 +305,13 @@ def verify(path, expected, total_body):
         "missing_source_ids": missing, "unexpected_source_ids": unexpected,
         "duplicate_source_ids": duplicates, "text_mismatches": mismatches,
         "contact_checks": contacts,
+        "biography_checks": biography_checks,
+        "read_biography_summaries": biography_summaries,
+        "forbidden_section_or_date_number_elements": page.forbidden_number_elements,
+        "title_highlights": title_highlights,
+        "expected_title_highlight_texts": HIGHLIGHT_TEXTS,
+        "title_highlights_correct": correct_highlights,
+        "omitted_content_checks": omitted_content_checks,
         "local_link_checks": link_checks, "missing_local_targets": local_failures,
         "broken_internal_anchors": anchor_failures, "duplicate_html_ids": duplicate_html_ids,
         "markup_errors": page.markup_errors,
@@ -265,16 +329,29 @@ def main():
                         "ICVGIP_WorkshopProposal_ViLaMA_2026_V2.docx")
     args = parser.parse_args()
     project, source = args.project_root.resolve(), args.source.resolve()
-    expected, total = source_paragraphs(source)
-    results = [verify(project / relative, expected, total)
+    original, total = source_paragraphs(source)
+    expected = {pid: re.sub(r"^\d+\.\s+", "", text, count=1)
+                if pid in UNNUMBERED_HEADING_IDS else text
+                for pid, text in original.items() if pid not in OMITTED_IDS}
+    results = [verify(project / relative, expected, original, total)
                for relative in ("index.html", "dist/index.html")]
     report = {
         "verifier": "Direct DOCX XML extraction and independent stdlib HTMLParser comparison; source-copy.json and build.py are not consulted",
         "source": {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
-                   "nonempty_paragraph_count": len(expected), "all_body_paragraph_count": total},
+                   "nonempty_paragraph_count": len(original), "all_body_paragraph_count": total},
+        "authorized_content_policy": {
+            "original_nonempty_paragraph_count": len(original),
+            "retained_source_paragraph_count": len(expected),
+            "omitted_source_ids": sorted(OMITTED_IDS),
+            "headings_with_numeric_prefix_removed": sorted(UNNUMBERED_HEADING_IDS),
+            "unchanged_source_archive": "source-copy.json retains the full original extraction",
+            "remaining_copy": "Every other character, including contact details and title textContent, must match the original DOCX",
+            "biographies": "All three biographies must be present outside details and without hidden markup",
+            "title_highlights": "Four acronym-highlight spans inside p003 with exact texts Vi, La, M, A",
+        },
         "passed": all(result["passed"] for result in results),
         "files": results,
-        "scope": "TextContent, markup nesting, source IDs, contact text, local src/href targets and anchor existence; no JavaScript execution or visual rendering",
+        "scope": "Authorized source-copy exceptions, exact retained textContent, biography visibility in markup, title highlight spans, omitted sections, markup nesting, source IDs, contact text, local src/href targets and anchors; no JavaScript execution, stylesheet visibility evaluation or visual rendering",
     }
     output = project / "qa/source-verification.json"
     output.parent.mkdir(exist_ok=True)

@@ -16,12 +16,13 @@ Visit `http://localhost:8000`.
 
 ## Files
 
-- `index.html`: complete generated page, including every supplied paragraph.
+- `index.html`: complete generated page, including all 95 retained source paragraphs.
 - `styles.css`: theme tokens, layouts, breakpoints, focus and print styles.
 - `script.js`: mobile navigation, current-section tracking, print enhancements.
 - `assets/`: original vector artwork, the three portraits extracted from the
   proposal, favicon and a downloadable calendar event.
-- `source-copy.json`: exact text extracted from the reference Word document.
+- `source-copy.json`: unchanged archive of all 101 nonempty paragraphs extracted
+  from the reference Word document, including content omitted from the webpage.
 - `event-details.json`: the additional dates, formatting information, publication
   update and links supplied by the organizer.
 - `tools/build.py`: generates the HTML and copies the runnable site into `dist/`.
@@ -52,13 +53,31 @@ retained independently.
 
 ## Source text policy
 
-All 101 nonempty Word paragraphs appear once, unchanged, identified by
-`data-source-id`. HTML escaping, visual line wrapping, links inside contact
-paragraphs, and placement do not alter their text. Motivation, full biographies
-and the tentative committee use native accessible expanders; their complete
-text is in the HTML and expands when printing. Source spelling, source numbers,
-tentative wording and the original ACM ICPS publication paragraph are retained.
-The separately supplied Springer update remains visibly subject to approval.
+The webpage follows the organizer's revised content policy. It omits the Expected
+Audience, Publicity Plan and Previous Editions headings and paragraphs: source IDs
+`p133`, `p135`, `p138`, `p140`, `p143` and `p145`. Leading numeric section prefixes
+are removed only from heading IDs `p008`, `p018`, `p021`, `p038`, `p071`, `p095` and
+`p109`. The remaining 95 source paragraphs each appear once, identified by
+`data-source-id`, with every other character retained exactly. This includes
+punctuation, whitespace, contact details, dates within the proposal, tentative
+wording and the original ACM ICPS publication paragraph.
+
+The title's full text is unchanged. Four inline `acronym-highlight` spans emphasize
+`Vi`, `La`, `M` and `A` within Vision, Language, Models and Applications. Numbered
+section decorations and date indexes are absent. Organizer portraits use a
+smaller presentation, and all three complete biographies are always displayed
+without a Read biography expander. Motivation and the tentative committee retain
+native accessible expanders. The separately supplied Springer update remains
+visibly subject to approval.
+
+`tools/verify_source.py` independently reopens the original DOCX and validates both
+the root page and `dist/index.html`. It enforces exactly these six omissions and
+seven heading-prefix changes, exact text for all retained paragraphs, visible
+biography markup, the four title highlights, and removal of the omitted sections
+and numbered decorations. It also checks contacts, local asset links and internal
+anchors, and inventories TODO comments separately from visible status labels.
+The results are written to `qa/source-verification.json`. This structural check
+does not replace visual review of the rendered page.
 
 The original DOCX is unchanged. Its organizer photos are retained without image
 editing. The hero illustration and small logo are original SVG assets, and
