@@ -1126,18 +1126,7 @@ summary:hover{
     grid-template-columns:1fr
   }
   .submission-resources{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:0 25px
-  }
-  .submission-resources h3{
-    grid-column:1/-1
-  }
-  .submission-resources .source-text{
-    grid-column:1/-1
-  }
-  .submission-resources .pending{
-    grid-column:1/-1
+    display:block
   }
   .date-grid{
     grid-template-columns:repeat(3,1fr);
