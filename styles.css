@@ -454,8 +454,8 @@ JS adds a compact mobile menu. */
 .facts{
   border-block:1px solid var(--line);
   display:grid;
-  grid-template-columns:1.5fr 1fr 1fr 1fr;
-  padding-block:21px;
+  grid-template-columns:1.45fr 1fr 1fr 1.35fr;
+  padding-block:25px;
   gap:25px
 }
 .fact+.fact{
@@ -464,20 +464,22 @@ JS adds a compact mobile menu. */
 }
 .fact span{
   display:block;
-  font:9px/1.6 var(--mono);
-  letter-spacing:.14em;
+  font:11px/1.5 var(--mono);
+  letter-spacing:.12em;
   color:var(--muted);
-  margin-bottom:6px;
+  margin-bottom:8px;
   text-transform:uppercase
 }
 .fact strong{
-  font-size:12px;
-  font-weight:550;
-  color:var(--ink)
+  font-size:16px;
+  font-weight:600;
+  line-height:1.4;
+  color:var(--ink);
+  display:block
 }
 .fact p{
-  font-size:12px;
-  line-height:1.6
+  font-size:15px;
+  line-height:1.5
 }
 .section{
   padding-block:85px;
@@ -627,8 +629,9 @@ summary:hover{
 }
 .date-card time{
   display:block;
-  font:400 clamp(26px,2.8vw,38px)/1.2 var(--serif);
-  letter-spacing:-.025em;
+  font:400 clamp(19px,1.9vw,25px)/1.2 var(--serif);
+  letter-spacing:-.02em;
+  white-space:nowrap;
   color:var(--lime);
   margin-top:15px
 }
@@ -1088,14 +1091,25 @@ summary:hover{
     display:none
   }
   .facts{
-    gap:16px;
-    grid-template-columns:1.5fr 1fr 1fr
+    gap:20px 24px;
+    grid-template-columns:repeat(2,1fr)
   }
   .fact+.fact{
-    padding-left:16px
+    padding-left:0;
+    border-left:0
+  }
+  .fact:nth-child(even){
+    border-left:1px solid var(--line);
+    padding-left:20px
   }
   .fact:last-child{
-    display:none
+    display:block
+  }
+  .fact strong,.fact p{
+    font-size:15px
+  }
+  .fact span{
+    font-size:10px
   }
   .section{
     padding-block:65px
@@ -1130,7 +1144,8 @@ summary:hover{
     gap:20px
   }
   .date-card time{
-    font-size:26px
+    font-size:21px;
+    white-space:nowrap
   }
 
   .person-photo{
@@ -1280,10 +1295,10 @@ summary:hover{
     display:block
   }
   .fact strong,.fact p{
-    font-size:11px
+    font-size:14px
   }
   .fact span{
-    font-size:8px
+    font-size:10px
   }
   .section{
     padding-block:48px;
@@ -1332,11 +1347,9 @@ summary:hover{
     flex:1
   }
   .date-card time{
-    font-size:36px;
-    margin-top:9px
-  }
-  .date-card:last-child time{
-    font-size:26px
+    font-size:24px;
+    margin-top:9px;
+    white-space:nowrap
   }
   .dates-footer{
     flex-wrap:wrap;
