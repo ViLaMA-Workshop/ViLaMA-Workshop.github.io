@@ -714,12 +714,15 @@ summary:hover{
   flex:none
 }
 .committee{
-  margin-top:34px
-}
-.committee summary{
-  font-size:13px;
+  margin-top:34px;
   border-top:1px solid var(--line);
-  padding-block:19px
+  padding-top:19px
+}
+.committee-heading{
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:12px;
+  color:var(--ink)
 }
 .committee-list{
   display:grid;
