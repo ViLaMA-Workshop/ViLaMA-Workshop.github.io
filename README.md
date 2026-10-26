@@ -2,25 +2,32 @@
 
 Official website for the **First Workshop on Vision Language Models and Applications (ViLaMA 2026)**, held in conjunction with **ICVGIP 2026** at the **Indian Statistical Institute (ISI), Kolkata** on **December 21, 2026**.
 
-Website URL: **[https://vilama-workshop.github.io/ViLaMA/](https://vilama-workshop.github.io/ViLaMA/)**
+🌐 **Live Website**: [https://vilama-workshop.github.io/](https://vilama-workshop.github.io/)
 
 ---
 
-## Structure
+## Repository Structure
 
-This is a clean, static, dependency-free website ready to host directly on GitHub Pages:
+A lightweight, dependency-free static website hosted on GitHub Pages:
 
-- `index.html`: Complete workshop webpage (overview, topics, dates, CFP, schedule, speakers, organizers, venue).
-- `styles.css`: Responsive typography, layout, CSS variables, and light/dark theme styles.
-- `script.js`: Navigation menu toggle, active section tracking, and accessibility utilities.
-- `theme.js`: Instant appearance detection (Light / Dark / Auto) without layout flash.
-- `assets/`: Vector artwork, speaker portraits, icons, and calendar invite (`vilama-2026.ics`).
+- `index.html` — Workshop webpage (About, Topics, Dates, CFP, Program, Speakers, Organizers, Venue).
+- `styles.css` — Responsive layout and light/dark theme styling.
+- `script.js` — Mobile menu toggle and section navigation.
+- `theme.js` — Instant appearance detection (Light / Dark / Auto).
+- `assets/` — Speaker portraits, vector artwork, and icons.
+- `.github/workflows/pages.yml` — Automated GitHub Pages deployment workflow.
 
 ---
 
-## Deployment & CI/CD
+## Making Updates
 
-The website is continuously deployed to GitHub Pages using GitHub Actions (`.github/workflows/pages.yml`).
+To update the website:
 
-- Every push to the `main` branch automatically deploys the latest version to GitHub Pages.
-- To edit any content or appearance, edit `index.html` or `styles.css` directly and push to `main`.
+1. Edit `index.html` (content & links) or `styles.css` (design).
+2. Commit and push to `main`:
+   ```bash
+   git add .
+   git commit -m "Update workshop details"
+   git push origin main
+   ```
+GitHub Actions will automatically build and publish the changes to the live website within seconds.
