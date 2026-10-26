@@ -850,7 +850,7 @@ summary:hover{
 .people-grid{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:40px
+  gap:28px
 }
 .person{
   min-width:0;
@@ -900,13 +900,13 @@ summary:hover{
   margin-top:0
 }
 .person-contact{
-  font-size:14px;
-  line-height:1.7;
-  margin-top:14px;
-  overflow-wrap:anywhere
+  font-size:clamp(11.5px,0.95vw,13px);
+  line-height:1.8;
+  margin-top:0;
+  white-space:nowrap
 }
-.person-contact p+p{
-  margin-top:5px
+.person-contact p{
+  margin-top:0
 }
 .person .bio{
   border-top:1px solid var(--line);
@@ -1432,7 +1432,7 @@ summary:hover{
   .person-contact{
     grid-column:2;
     font-size:13px;
-    margin-top:10px
+    margin-top:0
   }
   .primary-contact{
     font-size:13px
