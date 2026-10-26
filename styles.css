@@ -616,16 +616,6 @@ summary:hover{
   font-size:27px;
   line-height:1.35
 }
-.calendar-actions{
-  display:flex;
-  flex-wrap:wrap;
-  gap:16px;
-  align-items:center;
-  margin-top:31px
-}
-.calendar-actions .calendar-link{
-  margin-top:0
-}
 .calendar-link{
   margin-top:31px;
   color:var(--panel-heading);
@@ -633,9 +623,6 @@ summary:hover{
 }
 .calendar-link:hover{
   color:var(--lime)
-}
-.calendar-secondary{
-  opacity:.85
 }
 .dates-footer{
   display:flex;
@@ -1327,7 +1314,7 @@ summary:hover{
     max-width:none;
     margin-top:0
   }
-  .calendar-actions{
+  .calendar-link{
     margin-top:27px
   }
   .submission-layout{
