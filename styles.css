@@ -506,7 +506,9 @@ JS adds a compact mobile menu. */
 }
 .reading{
   font-size:15px;
-  line-height:1.9
+  line-height:1.9;
+  text-align:justify;
+  text-justify:inter-word
 }
 .reading .source-text+.source-text{
   margin-top:1.2em
