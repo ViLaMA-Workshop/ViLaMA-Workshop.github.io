@@ -668,11 +668,17 @@ summary:hover{
 }
 .submission-note{
   border-left:3px solid var(--rust);
-  padding-left:20px;
-  margin-top:25px
+  padding-left:22px;
+  margin-top:28px
+}
+.submission-note .publication-plan-title{
+  font:600 22px/1.3 var(--serif);
+  color:var(--ink);
+  margin-bottom:10px
 }
 .submission-note p{
-  font:400 18px/1.6 var(--serif)
+  font:400 19px/1.65 var(--serif);
+  color:var(--ink)
 }
 .submission-note .eyebrow{
   font-size:9px;
@@ -874,6 +880,15 @@ summary:hover{
   font-size:26px;
   line-height:1.2;
   margin-bottom:13px
+}
+.person h3 a{
+  color:inherit;
+  text-decoration:none
+}
+.person h3 a:hover{
+  color:var(--rust);
+  text-decoration:underline;
+  text-underline-offset:4px
 }
 .person-meta{
   font-size:14px;
