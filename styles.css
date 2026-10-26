@@ -893,16 +893,17 @@ summary:hover{
   text-underline-offset:4px
 }
 .person-meta{
-  font-size:14px;
-  line-height:1.8
+  font-size:16px;
+  line-height:1.7
 }
 .person-meta p+p{
   margin-top:0
 }
 .person-contact{
-  font-size:clamp(11.5px,0.95vw,13px);
-  line-height:1.8;
+  font-size:clamp(12px,1.02vw,14px);
+  line-height:1.7;
   margin-top:0;
+  letter-spacing:-.01em;
   white-space:nowrap
 }
 .person-contact p{
@@ -1145,7 +1146,10 @@ summary:hover{
   .person h3{
     font-size:22px
   }
-  .person-meta,.person-contact{
+  .person-meta{
+    font-size:15px
+  }
+  .person-contact{
     font-size:13px
   }
   .person-contact a{
@@ -1427,7 +1431,7 @@ summary:hover{
   }
   .person-meta{
     grid-column:2;
-    font-size:13px
+    font-size:15px
   }
   .person-contact{
     grid-column:2;
@@ -1516,7 +1520,10 @@ summary:hover{
   .hero-authors{
     font-size:13px
   }
-  .person-meta,.person-contact{
+  .person-meta{
+    font-size:15px
+  }
+  .person-contact{
     font-size:13px
   }
   .schedule th{
