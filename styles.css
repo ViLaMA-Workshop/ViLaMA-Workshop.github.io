@@ -564,24 +564,41 @@ details[open]>summary::after{
 summary:hover{
   color:var(--rust)
 }
-/* A flowing research list fits the editorial typography without boxed cards. */
-.topic-list{
-  columns:2;
+/* Topics of Interest: two-column layout aligned at top and bottom baselines */
+.topics-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
   column-gap:56px;
-  padding-left:18px;
-  list-style:disc
+  align-items:stretch
+}
+.topic-list{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  height:100%;
+  padding-left:0;
+  margin:0;
+  list-style:none
 }
 .topic-list li{
-  break-inside:avoid;
-  padding:0 0 18px 5px
+  position:relative;
+  padding-left:18px;
+  margin:0;
+  break-inside:avoid
 }
-.topic-list li::marker{
+.topic-list li::before{
+  content:"•";
+  position:absolute;
+  left:0;
+  top:0;
   color:var(--rust);
-  font-size:11px
+  font-size:16px;
+  line-height:1.55
 }
 .topic-list p{
   color:var(--ink);
-  font:400 19px/1.55 var(--serif)
+  font:400 19px/1.55 var(--serif);
+  margin:0
 }
 .dates-section{
   background:var(--panel-bg);
@@ -1615,7 +1632,7 @@ summary:hover{
 
 @media(max-width:760px){
   .overview-meta{font-size:11px;gap:22px}
-  .topic-list{columns:1;padding-left:17px}
-  .topic-list li{padding-bottom:16px}
+  .topics-grid{grid-template-columns:1fr;gap:18px}
+  .topic-list{justify-content:flex-start;gap:18px;height:auto}
   .topic-list p{font-size:18px}
 }
