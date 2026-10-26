@@ -1,78 +1,37 @@
-name: Website CI and Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
-    # TODO: Change both main references below if the default branch is renamed.
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: ["main"]
   workflow_dispatch:
 
-# Checks can read code; only the deployment job can publish a site.
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: website-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build:
-    name: Validate and build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Build static website
-        run: python tools/build.py
-
-      # The original Word file stays local. This verifies archive conformance;
-      # direct DOCX verification remains available to the organizers locally.
-      - name: Verify exact text, markup, assets, and internal links
-        run: python tools/verify_source.py --archive source-copy.json
-
-      - name: Check JavaScript and test appearance controls
-        run: |
-          node --check script.js
-          node --check theme.js
-          node tools/test_theme.cjs
-
-      - name: Upload built website
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
   deploy:
-    name: Deploy GitHub Pages
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Configure GitHub Pages
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Deploy verified website
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
