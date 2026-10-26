@@ -614,7 +614,7 @@ summary:hover{
 }
 .date-grid{
   display:grid;
-  grid-template-columns:1fr 1fr 1.4fr;
+  grid-template-columns:repeat(3,1fr);
   gap:30px
 }
 .date-card{
@@ -627,14 +627,10 @@ summary:hover{
 }
 .date-card time{
   display:block;
-  font:400 clamp(30px,3.2vw,46px)/1.2 var(--serif);
+  font:400 clamp(26px,2.8vw,38px)/1.2 var(--serif);
   letter-spacing:-.025em;
   color:var(--lime);
   margin-top:15px
-}
-.date-card:last-child time{
-  font-size:27px;
-  line-height:1.35
 }
 .calendar-link{
   margin-top:31px;
@@ -1130,14 +1126,11 @@ summary:hover{
     grid-column:1/-1
   }
   .date-grid{
-    grid-template-columns:1fr 1fr 1.2fr;
+    grid-template-columns:repeat(3,1fr);
     gap:20px
   }
   .date-card time{
-    font-size:32px
-  }
-  .date-card:last-child time{
-    font-size:23px
+    font-size:26px
   }
 
   .person-photo{
