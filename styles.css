@@ -152,7 +152,9 @@ ul,ol{
 }
 .source-text{
   white-space:pre-line;
-  overflow-wrap:anywhere
+  overflow-wrap:anywhere;
+  /* Supplied copy must retain its original capitalization, including in labels. */
+  text-transform:none!important
 }
 .eyebrow{
   font:500 11px/1.6 var(--mono);
@@ -480,7 +482,7 @@ JS adds a compact mobile menu. */
 .section{
   padding-block:85px;
   border-bottom:1px solid var(--line);
-  scroll-margin-top:100px
+  scroll-margin-top:0
 }
 .section-head{
   display:grid;
@@ -851,14 +853,14 @@ summary:hover{
   margin-bottom:13px
 }
 .person-meta{
-  font-size:11px;
+  font-size:12px;
   line-height:1.8
 }
 .person-meta p+p{
   margin-top:0
 }
 .person-contact{
-  font-size:11px;
+  font-size:12px;
   line-height:1.7;
   margin-top:14px;
   overflow-wrap:anywhere
@@ -950,10 +952,6 @@ summary:hover{
 }
 .print-only{
   display:none
-}
-/* Supplied copy must retain its original capitalization, including in labels. */
-.source-text{
-  text-transform:none!important
 }
 .schedule td .source-text+.source-text{
   font:11px/1.6 var(--mono);
@@ -1478,13 +1476,6 @@ summary:hover{
   .hero-overline{
     font-size:7px
   }
-}
-/* One sticky-header offset avoids combining scroll padding with scroll margin. */
-.section{
-  scroll-margin-top:0
-}
-.person-meta,.person-contact{
-  font-size:12px
 }
 @media(max-width:760px){
   .hero-authors{

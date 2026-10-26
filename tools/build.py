@@ -10,7 +10,7 @@ import html
 import json
 import shutil
 import re
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / 'source-copy.json').read_text())
@@ -166,7 +166,6 @@ speakers = f'''
 
 def link_contact(pid):
     text = esc(COPY[pid])
-    import re
     text = re.sub(r'([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})', r'<a href="mailto:\1">\1</a>', text)
     return source(pid,content=text)
 
@@ -224,7 +223,7 @@ PRODID:-//ViLaMA 2026//Workshop//EN\r
 CALSCALE:GREGORIAN\r
 BEGIN:VEVENT\r
 UID:vilama-2026-{WORKSHOP_DATE:%Y%m%d}@workshop.local\r
-DTSTAMP:{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}\r
+DTSTAMP:{WORKSHOP_DATE:%Y%m%d}T000000Z\r
 DTSTART;VALUE=DATE:{WORKSHOP_DATE:%Y%m%d}\r
 DTEND;VALUE=DATE:{WORKSHOP_DATE + timedelta(days=1):%Y%m%d}\r
 SUMMARY:ViLaMA 2026\r
@@ -235,7 +234,6 @@ END:VEVENT\r
 END:VCALENDAR\r
 '''
 (ROOT / 'assets' / 'vilama-2026.ics').write_text(calendar,encoding='utf-8',newline='')
-(ROOT / 'assets' / 'favicon.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="#173c36"/><path d="m8 11 9 19h6l9-19h-6l-6 14-6-14z" fill="#d7e88e"/></svg>')
 out = ROOT / 'dist'
 out.mkdir(exist_ok=True)
 for file in ['index.html','styles.css','script.js','theme.js']:
