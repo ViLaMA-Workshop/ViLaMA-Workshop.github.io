@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Independently verify ViLaMA HTML against the original DOCX (stdlib only).
+"""Verify ViLaMA HTML against the original DOCX or an explicit archive (stdlib only).
 
-This verifier never reads source-copy.json and never imports the extractor or
-builder. It writes only qa/source-verification.json, leaving build files intact.
+The default independently reads the DOCX without consulting source-copy.json.
+Use --archive source-copy.json for archive conformance in a standalone checkout;
+that mode validates the archived extraction but does not re-audit the DOCX.
+Neither mode imports the builder or extractor. Only the QA report is written.
 """
 
 import argparse
@@ -71,6 +73,100 @@ def source_paragraphs(path):
         all_text = [(f"p{index:03d}", text_from(p, p)) for index, p in
                     enumerate(body.iter(W + "p"), 1)]
     return {pid: text for pid, text in all_text if text.strip()}, len(all_text)
+
+
+def archive_paragraphs(path):
+    """Validate the archived extraction before using it as a text baseline."""
+    archive_bytes = path.read_bytes()
+    archive = json.loads(archive_bytes.decode("utf-8"))
+
+    def require(condition, message):
+        if not condition:
+            raise ValueError(message)
+
+    require(isinstance(archive, dict), "archive must be a JSON object")
+    require(type(archive.get("schema_version")) is int and archive["schema_version"] == 1,
+            "unsupported or missing schema_version (expected 1)")
+    provenance = archive.get("source")
+    require(isinstance(provenance, dict), "source provenance must be an object")
+    require(isinstance(provenance.get("path"), str) and bool(provenance["path"]),
+            "source.path must identify the original DOCX")
+    require(isinstance(provenance.get("sha256"), str) and
+            re.fullmatch(r"[0-9a-fA-F]{64}", provenance["sha256"]) is not None,
+            "source.sha256 must be the original DOCX SHA-256")
+    require(type(provenance.get("bytes")) is int and provenance["bytes"] > 0,
+            "source.bytes must be a positive integer")
+    full = archive.get("all_body_paragraphs")
+    paragraphs = archive.get("paragraphs")
+    require(isinstance(full, list) and bool(full),
+            "all_body_paragraphs must be a nonempty list")
+    require(isinstance(paragraphs, list), "paragraphs must be a list")
+    for label, entries in (("all_body_paragraphs", full), ("paragraphs", paragraphs)):
+        ids = []
+        for index, entry in enumerate(entries, 1):
+            require(isinstance(entry, dict), f"{label}[{index}] must be an object")
+            pid, text, tokens = entry.get("id"), entry.get("text"), entry.get("tokens")
+            require(isinstance(pid, str) and re.fullmatch(r"p\d{3,}", pid) is not None,
+                    f"{label}[{index}] has an invalid paragraph ID")
+            ids.append(pid)
+            require(isinstance(text, str), f"{pid}: text must be a string")
+            require(isinstance(tokens, list) and all(
+                isinstance(token, dict) and isinstance(token.get("text"), str)
+                for token in tokens), f"{pid}: tokens must contain string text")
+            require(text == "".join(token["text"] for token in tokens),
+                    f"{pid}: text does not match its tokens")
+            require(type(entry.get("has_visible_text")) is bool and
+                    entry["has_visible_text"] == bool(text.strip()),
+                    f"{pid}: has_visible_text does not match text")
+        require(len(ids) == len(set(ids)), f"{label} contains duplicate paragraph IDs")
+    require(all(entry["id"] == f"p{index:03d}" and
+                type(entry.get("global_index")) is int and entry["global_index"] == index
+                for index, entry in enumerate(full, 1)),
+            "all_body_paragraphs IDs/global_index must preserve original paragraph order")
+    visible = [entry for entry in full if entry["text"].strip()]
+    require(paragraphs == visible,
+            "paragraphs must exactly equal the nonempty all_body_paragraphs entries in order")
+    counts = archive.get("counts")
+    require(isinstance(counts, dict), "counts must be an object")
+    actual_counts = {
+        "all_body_paragraphs": len(full),
+        "nonempty_visible_body_paragraphs": len(visible),
+        "blank_or_image_only_paragraphs": len(full) - len(visible),
+    }
+    for field, count_name in (("media", "media_files"),
+                              ("embedded_objects", "embedded_objects"),
+                              ("tracked_changes", "tracked_changes")):
+        require(isinstance(archive.get(field), list), f"{field} must be a list")
+        actual_counts[count_name] = len(archive[field])
+    require(isinstance(archive.get("body_structure"), list), "body_structure must be a list")
+
+    def table_count(node):
+        if isinstance(node, list):
+            return sum(table_count(child) for child in node)
+        if isinstance(node, dict):
+            return int(node.get("type") == "table") + sum(
+                table_count(child) for child in node.values())
+        return 0
+
+    actual_counts["tables_including_nested"] = table_count(archive["body_structure"])
+    for name, actual in actual_counts.items():
+        require(type(counts.get(name)) is int and counts[name] == actual,
+                f"counts.{name} must be {actual}")
+    original = {entry["id"]: entry["text"] for entry in paragraphs}
+    required_ids = (OMITTED_IDS | UNNUMBERED_HEADING_IDS | set(BIOGRAPHY_IDS) |
+                    {"p003", "p016", "p020"})
+    require(required_ids <= original.keys(),
+            "archive is missing nonempty paragraphs required by the approved content policy")
+    return original, len(full), {
+        "kind": "source_copy_archive",
+        "path": str(path),
+        "sha256": hashlib.sha256(archive_bytes).hexdigest(),
+        "original_docx": provenance,
+        "metadata_counts": actual_counts,
+        "nonempty_paragraph_count": len(original),
+        "all_body_paragraph_count": len(full),
+        "integrity_checks_passed": True,
+    }
 
 
 class Page(HTMLParser):
@@ -375,27 +471,52 @@ def verify(path, expected, original, total_body):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[2] /
-                        "ICVGIP_WorkshopProposal_ViLaMA_2026_V2.docx")
+    baseline = parser.add_mutually_exclusive_group()
+    baseline.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[2] /
+                          "ICVGIP_WorkshopProposal_ViLaMA_2026_V2.docx",
+                          help="original DOCX to independently audit (the default)")
+    baseline.add_argument("--archive", type=Path,
+                          help="validated source-copy.json baseline for archive conformance")
     args = parser.parse_args()
-    project, source = args.project_root.resolve(), args.source.resolve()
-    original, total = source_paragraphs(source)
+    project = args.project_root.resolve()
+    if args.archive is not None:
+        source = args.archive.resolve()
+        try:
+            original, total, source_report = archive_paragraphs(source)
+        except (OSError, UnicodeError, ValueError) as error:
+            parser.error(f"Cannot verify archive {source}: {error}")
+        verification_mode = "archive_conformance"
+        verifier = ("Archive conformance: stdlib HTMLParser comparison against a validated "
+                    "archived DOCX extraction; original DOCX is not re-read and build.py "
+                    "is not imported")
+    else:
+        source = args.source.resolve()
+        original, total = source_paragraphs(source)
+        verification_mode = "direct_docx_audit"
+        verifier = ("Direct DOCX XML extraction and independent stdlib HTMLParser comparison; "
+                    "source-copy.json and build.py are not consulted")
+        source_report = {"path": str(source),
+                         "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+                         "nonempty_paragraph_count": len(original),
+                         "all_body_paragraph_count": total}
     expected = {pid: re.sub(r"^\d+\.\s+", "", text, count=1)
                 if pid in UNNUMBERED_HEADING_IDS else text
                 for pid, text in original.items() if pid not in OMITTED_IDS}
     results = [verify(project / relative, expected, original, total)
                for relative in ("index.html", "dist/index.html")]
     report = {
-        "verifier": "Direct DOCX XML extraction and independent stdlib HTMLParser comparison; source-copy.json and build.py are not consulted",
-        "source": {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
-                   "nonempty_paragraph_count": len(original), "all_body_paragraph_count": total},
+        "verification_mode": verification_mode,
+        "verifier": verifier,
+        "source": source_report,
         "authorized_content_policy": {
             "original_nonempty_paragraph_count": len(original),
             "retained_source_paragraph_count": len(expected),
             "omitted_source_ids": sorted(OMITTED_IDS),
             "headings_with_numeric_prefix_removed": sorted(UNNUMBERED_HEADING_IDS),
             "unchanged_source_archive": "source-copy.json retains the full original extraction",
-            "remaining_copy": "Every other character, including contact details and title textContent, must match the original DOCX",
+            "remaining_copy": ("Every other character, including contact details and title textContent, "
+                               "must match " + ("the validated archived DOCX extraction" if args.archive
+                                                else "the original DOCX")),
             "biographies": "All three biographies must be present outside details and without hidden markup",
             "overview": "p016 contains an h3.overview-subtitle exactly Abstract: and a p.reading retaining the original remainder including its leading space; p018 is h3.overview-subtitle and p020 is p.reading; all remain outside details and hidden markup",
             "expanders": "Only the tentative committee details expander remains",
@@ -408,7 +529,8 @@ def main():
     output = project / "qa/source-verification.json"
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(json.dumps({"report": str(output), "passed": report["passed"],
+    print(json.dumps({"report": str(output), "verification_mode": verification_mode,
+                      "passed": report["passed"],
                       "files": [{key: result.get(key) for key in
                                  ("path", "status", "actual_source_tag_count", "exact_match_count")}
                                 for result in results]}, indent=2))

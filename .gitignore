@@ -1,6 +1,33 @@
+# macOS, Windows, editors
 .DS_Store
-.site-workflow*
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local environment files and dependencies
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+node_modules/
 __pycache__/
-qa/
+*.py[cod]
+.pytest_cache/
+
+# Recreated by the build / validation workflows
+/dist/
+/qa/
+*.log
+
+# Local Sites preview settings and temporary repository credentials
+/.openai/
+.site-workflow*
+
+# Packaged downloads; source assets and source-copy.json stay versioned
 *.tar.gz
 *.zip

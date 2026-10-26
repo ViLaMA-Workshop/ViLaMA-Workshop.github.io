@@ -29,7 +29,8 @@ Visit `http://localhost:8000`.
   update and links supplied by the organizer.
 - `tools/build.py`: generates the HTML and copies the runnable site into `dist/`.
 - `tools/extract_source.py`: reproducibly extracts the original source copy.
-- `tools/verify_source.py`: independently compares the generated page to the DOCX.
+- `tools/verify_source.py`: independently compares the generated page to the DOCX,
+  or explicitly verifies conformance to the committed archive for CI.
 
 ## Edit and rebuild
 
@@ -43,6 +44,10 @@ python3 tools/verify_source.py
 
 The verifier expects the reference Word document in the parent directory. To
 use a different location, see `python3 tools/verify_source.py --help`.
+In a standalone checkout without that document, run
+`python3 tools/verify_source.py --archive source-copy.json` after building.
+Archive mode checks extraction integrity and the same text/presentation rules;
+it reports archive conformance rather than an independent Word-document audit.
 
 The page is also runnable directly after changing its generated HTML, but a
 subsequent build will replace those manual edits. Edit the builder to retain
@@ -127,5 +132,16 @@ Run the dependency-free theme behavior checks with `node tools/test_theme.cjs`.
 ## Deployment
 
 `dist/` is the complete static deployment folder, suitable for any static host.
-`.openai/hosting.json` links this checkout to its private Sites preview.
-Sharing and access are controlled by the hosting service.
+The GitHub Actions workflow in `.github/workflows/pages.yml` validates pull
+requests and builds/publishes successful updates to `main` through GitHub Pages.
+It deploys only `dist/`; no custom deployment secret is needed.
+
+See [GITHUB-PAGES.md](GITHUB-PAGES.md) for the repository upload, Pages settings,
+address options and ongoing editing steps. The supplied repository publishes at
+`https://vilama-workshop.github.io/ViLaMA/` after Pages is enabled and the first
+deployment succeeds.
+
+The `.gitignore` excludes build output, QA reports, local environments, editor
+files, archives and local Sites settings. It retains all source assets and the
+source text archive. Existing `.openai/hosting.json` settings are only for the
+separate local Sites preview and are not required by GitHub Pages.
