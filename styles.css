@@ -661,7 +661,9 @@ summary:hover{
 }
 .submission-main p{
   font-size:16px;
-  line-height:1.85
+  line-height:1.85;
+  text-align:justify;
+  text-justify:inter-word
 }
 .submission-main p+p{
   margin-top:20px
