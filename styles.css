@@ -697,6 +697,14 @@ summary:hover{
   font-size:26px;
   margin-bottom:24px
 }
+.submission-btn{
+  width:100%;
+  margin-bottom:20px;
+  gap:12px;
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:-.01em
+}
 .resource-link{
   display:flex;
   justify-content:space-between;
