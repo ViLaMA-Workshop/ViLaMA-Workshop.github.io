@@ -797,7 +797,7 @@ summary:hover{
   color:var(--ink);
   white-space:pre-line
 }
-.schedule tr:nth-child(3) td,.schedule tr:nth-child(5) td{
+.schedule tr:nth-child(3) td,.schedule tr:nth-child(5) td,.schedule tr:nth-child(6) td{
   color:var(--rust)
 }
 .schedule .source-text{
